@@ -46,27 +46,26 @@ gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' 
 # Try to install vscodium, skip if not available
 dnf install -y --skip-unavailable vscodium || echo "VSCodium not available, skipping..."
 
-# Install web development tools via npm (commented out due to build issues)
-# mkdir -p /usr/local/bin /usr/local/lib /root || true
-# npm config set prefix /usr/local
-# npm install -g \
-#     @angular/cli \
-#     @vue/cli \
-#     create-react-app \
-#     typescript \
-#     eslint \
-#     prettier \
-#     http-server \
-#     live-server || echo "Some npm packages failed to install, continuing..."
+# Install web development tools via npm
+npm config set prefix /usr/local
+npm install -g \
+    @angular/cli \
+    @vue/cli \
+    create-react-app \
+    typescript \
+    eslint \
+    prettier \
+    http-server \
+    live-server || echo "Some npm packages failed to install, continuing..."
 
-# Install Python development tools (commented out due to build issues)
-# pip3 install \
-#     flask \
-#     django \
-#     fastapi \
-#     requests \
-#     virtualenv \
-#     jupyter || echo "Some Python packages failed to install, continuing..."
+# Install Python development tools
+pip3 install \
+    flask \
+    django \
+    fastapi \
+    requests \
+    virtualenv \
+    jupyter || echo "Some Python packages failed to install, continuing..."
 
 # Configure SSH for X11 forwarding
 mkdir -p /etc/ssh/sshd_config.d/
@@ -136,11 +135,18 @@ export PATH="$HOME/.local/bin:$PATH"
 EOF
 
 # Configure X11 forwarding helper script
-# Ensure /usr/local is a directory
-if [ -e /usr/local ] && [ ! -d /usr/local ]; then
-    rm -rf /usr/local 2>/dev/null || true
+# Fix broken /usr/local symlink in Universal Blue base image
+# /usr/local -> ../var/usrlocal but /var/usrlocal doesn't exist
+if [ -L /usr/local ]; then
+    # Create the target directory for the symlink
+    mkdir -p /var/usrlocal
+    # Now we can create subdirectories
+    mkdir -p /usr/local/bin
+else
+    # If it's not a symlink, ensure it's a directory
+    [ ! -d /usr/local ] && mkdir -p /usr/local
+    mkdir -p /usr/local/bin
 fi
-mkdir -p /usr/local/bin 2>/dev/null || true
 cat > /usr/local/bin/setup-x11 << 'EOF'
 #!/bin/bash
 # X11 forwarding setup helper
@@ -166,8 +172,22 @@ echo "X11 test complete!"
 EOF
 chmod +x /usr/local/bin/test-x11
 
+# Copy systemd service files
+mkdir -p /etc/systemd/system
+cp /tmp/files/etc/systemd/system/dev-setup.service /etc/systemd/system/ 2>/dev/null || true
+
+# Copy development environment setup script
+cp /tmp/files/usr/local/bin/setup-dev-env /usr/local/bin/ 2>/dev/null || true
+chmod +x /usr/local/bin/setup-dev-env 2>/dev/null || true
+
 # Create development directories
-mkdir -p /opt/dev-tools
+# Fix broken /opt symlink in Universal Blue base image
+# /opt -> var/opt but /var/opt doesn't exist
+if [ -L /opt ]; then
+    mkdir -p /var/opt/dev-tools
+else
+    mkdir -p /opt/dev-tools
+fi
 mkdir -p /home/developer/{projects,tools,scripts}
 chown -R developer:developer /home/developer/
 
