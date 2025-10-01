@@ -27,7 +27,7 @@ dnf install -y \
 
 # Install GitHub CLI
 dnf install -y 'dnf-command(config-manager)'
-dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo
 dnf install -y gh
 
 # Install additional web development tools

@@ -36,8 +36,10 @@ dnf install -y --skip-unavailable gh
 # VSCodium installation removed - package not available in Fedora repositories
 
 # Install web development tools via npm
-mkdir -p /root
 npm config set prefix /usr/local
+npm config set cache /tmp/.npm
+npm config set init-module /tmp/.npm-init
+npm config set userconfig /tmp/.npmrc
 npm install -g \
     @angular/cli \
     @vue/cli \
