@@ -5,41 +5,23 @@ set -oue pipefail
 # Update system packages
 dnf update -y
 
-# Install X11 and development essentials
+# Install essential development tools
 dnf install -y \
-    # X11 support
-    xorg-x11-server-utils \
-    xorg-x11-xauth \
-    xorg-x11-apps \
-    \
-    # Development tools
     git \
-    gh \
     curl \
     wget \
     vim \
     nano \
     tmux \
-    \
-    # Web development
     nodejs \
     npm \
     python3 \
     python3-pip \
-    \
-    # Native IDEs and editors
-    code \
-    gedit \
-    neovim \
-    \
-    # Additional development tools
     docker \
     podman \
     make \
     gcc \
     g++ \
-    \
-    # Network tools
     openssh-server \
     rsync
 
@@ -47,17 +29,6 @@ dnf install -y \
 dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
 dnf install -y gh
-
-# Install VSCodium (open source VS Code) - Fedora/RPM version
-curl -fsSL https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor -o /usr/share/keyrings/vscodium-archive-keyring.gpg
-echo '[vscodium]
-name=gitlab.com_paulcarroty_vscodium-deb-rpm-repo
-baseurl=https://download.vscodium.com/rpms/
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' > /etc/yum.repos.d/vscodium.repo
-dnf install -y vscodium
 
 # Install additional web development tools
 npm install -g \
@@ -135,26 +106,11 @@ export DISPLAY=${DISPLAY:-:10.0}
 export PATH="$HOME/.local/bin:$PATH"
 EOF
 
-# Configure X11 forwarding helper script
-cat > /usr/local/bin/setup-x11 << 'EOF'
-#!/bin/bash
-# X11 forwarding setup helper
-echo "Setting up X11 forwarding..."
-export DISPLAY=${DISPLAY:-localhost:10.0}
-xauth list
-echo "X11 setup complete. Try running: xclock"
-EOF
-chmod +x /usr/local/bin/setup-x11
-
 # Create development directories
 mkdir -p /opt/dev-tools
 mkdir -p /home/developer/{projects,scripts,tools}
 
-# Install JetBrains Toolbox (for IntelliJ IDEA, WebStorm, etc.)
-wget -O /tmp/jetbrains-toolbox.tar.gz "https://data.services.jetbrains.com/products/download?platform=linux&code=TBA"
-tar -xzf /tmp/jetbrains-toolbox.tar.gz -C /opt/dev-tools/
-ln -sf /opt/dev-tools/jetbrains-toolbox-*/jetbrains-toolbox /usr/local/bin/jetbrains-toolbox
-
 # Clean up
 dnf clean all
 rm -rf /tmp/*
+
