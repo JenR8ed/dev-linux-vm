@@ -33,20 +33,10 @@ dnf install -y --skip-unavailable 'dnf-command(config-manager)'
 curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo
 dnf install -y --skip-unavailable gh
 
-# Install VSCodium (open source VS Code) - Fedora/RPM version
-mkdir -p /usr/share/keyrings
-curl -fsSL https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor -o /usr/share/keyrings/vscodium-archive-keyring.gpg
-echo '[vscodium]
-name=gitlab.com_paulcarroty_vscodium-deb-rpm-repo
-baseurl=https://download.vscodium.com/rpms/
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' > /etc/yum.repos.d/vscodium.repo
-# Try to install vscodium, skip if not available
-dnf install -y --skip-unavailable vscodium || echo "VSCodium not available, skipping..."
+# VSCodium installation removed - package not available in Fedora repositories
 
 # Install web development tools via npm
+mkdir -p /root
 npm config set prefix /usr/local
 npm install -g \
     @angular/cli \
