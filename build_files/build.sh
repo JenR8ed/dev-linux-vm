@@ -6,9 +6,8 @@ set -oue pipefail
 dnf update -y
 
 # Install X11 and development essentials
-dnf install -y \
+dnf install -y --skip-unavailable \
     xorg-x11-xauth \
-    xorg-x11-apps \
     git \
     curl \
     wget \
@@ -30,9 +29,9 @@ dnf install -y \
     rsync
 
 # Install GitHub CLI
-dnf install -y 'dnf-command(config-manager)'
+dnf install -y --skip-unavailable 'dnf-command(config-manager)'
 dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
-dnf install -y gh
+dnf install -y --skip-unavailable gh
 
 # Install VSCodium (open source VS Code) - Fedora/RPM version
 curl -fsSL https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor -o /usr/share/keyrings/vscodium-archive-keyring.gpg
@@ -43,7 +42,7 @@ enabled=1
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' > /etc/yum.repos.d/vscodium.repo
-dnf install -y vscodium
+dnf install -y --skip-unavailable vscodium
 
 # Install web development tools via npm
 npm install -g \
