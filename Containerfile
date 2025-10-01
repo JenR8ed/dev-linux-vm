@@ -10,6 +10,7 @@ RUN chmod +x /tmp/build.sh && /tmp/build.sh
 
 # Enable X11 forwarding by default
 RUN systemctl enable sshd
+RUN systemctl enable dev-setup
 
 # Final system validation
 RUN bootc container lint

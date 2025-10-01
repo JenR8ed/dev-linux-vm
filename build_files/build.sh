@@ -7,40 +7,26 @@ dnf update -y
 
 # Install X11 and development essentials
 dnf install -y \
-    # X11 support
-    xorg-x11-server-utils \
     xorg-x11-xauth \
     xorg-x11-apps \
-    \
-    # Development tools
     git \
-    gh \
     curl \
     wget \
     vim \
     nano \
     tmux \
-    \
-    # Web development
     nodejs \
     npm \
     python3 \
     python3-pip \
-    \
-    # Native IDEs and editors
-    code \
     gedit \
     neovim \
-    \
-    # Additional development tools
-    docker \
     podman \
     make \
     gcc \
     g++ \
-    \
-    # Network tools
     openssh-server \
+    openssh-clients \
     rsync
 
 # Install GitHub CLI
@@ -59,21 +45,25 @@ repo_gpgcheck=1
 gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' > /etc/yum.repos.d/vscodium.repo
 dnf install -y vscodium
 
-# Install additional web development tools
+# Install web development tools via npm
 npm install -g \
     @angular/cli \
     @vue/cli \
     create-react-app \
     typescript \
     eslint \
-    prettier
+    prettier \
+    http-server \
+    live-server
 
-# Python development tools
+# Install Python development tools
 pip3 install \
     flask \
     django \
     fastapi \
-    virtualenv
+    requests \
+    virtualenv \
+    jupyter
 
 # Configure SSH for X11 forwarding
 mkdir -p /etc/ssh/sshd_config.d/
@@ -81,14 +71,20 @@ cat > /etc/ssh/sshd_config.d/99-x11-forwarding.conf << EOF
 X11Forwarding yes
 X11DisplayOffset 10
 X11UseLocalhost yes
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+ChallengeResponseAuthentication no
+UsePAM yes
 PrintMotd no
 PrintLastLog yes
 TCPKeepAlive yes
 EOF
 
-# Create development user
+# Create development user with secure setup
 useradd -m -G wheel developer
-echo "developer:developer" | chpasswd
+# Generate random password or use SSH keys instead
+echo "developer:$(date +%s | sha256sum | base64 | head -c 32)" | chpasswd
 
 # Configure Git aliases
 cat > /etc/skel/.gitconfig << EOF
@@ -146,14 +142,27 @@ echo "X11 setup complete. Try running: xclock"
 EOF
 chmod +x /usr/local/bin/setup-x11
 
+# Test X11 forwarding
+cat > /usr/local/bin/test-x11 << 'EOF'
+#!/bin/bash
+echo "Testing X11 forwarding..."
+echo "DISPLAY: $DISPLAY"
+xauth list
+echo "Starting xclock test (close to continue)..."
+xclock &
+XCLOCK_PID=$!
+sleep 3
+kill $XCLOCK_PID 2>/dev/null
+echo "X11 test complete!"
+EOF
+chmod +x /usr/local/bin/test-x11
+
 # Create development directories
 mkdir -p /opt/dev-tools
-mkdir -p /home/developer/{projects,scripts,tools}
+mkdir -p /home/developer/{projects,tools,scripts}
+chown -R developer:developer /home/developer/
 
-# Install JetBrains Toolbox (for IntelliJ IDEA, WebStorm, etc.)
-wget -O /tmp/jetbrains-toolbox.tar.gz "https://data.services.jetbrains.com/products/download?platform=linux&code=TBA"
-tar -xzf /tmp/jetbrains-toolbox.tar.gz -C /opt/dev-tools/
-ln -sf /opt/dev-tools/jetbrains-toolbox-*/jetbrains-toolbox /usr/local/bin/jetbrains-toolbox
+# JetBrains Toolbox installation removed for stability
 
 # Clean up
 dnf clean all
