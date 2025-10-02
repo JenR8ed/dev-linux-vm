@@ -108,6 +108,14 @@ build $target_image=image_name $tag=default_tag:
         --tag "${target_image}:${tag}" \
         .
 
+# Memory-efficient build with monitoring and cleanup
+build-safe $target_image=image_name $tag=default_tag:
+    ./scripts/memory-efficient-build.sh Containerfile "{{target_image}}:{{tag}}"
+
+# Memory-efficient simple build
+build-simple-safe $target_image=image_name $tag=default_tag:
+    ./scripts/memory-efficient-build.sh Containerfile.simple "{{target_image}}:{{tag}}"
+
 # Simplified build command for container image
 [group('Simplified Build')]
 build-simple $target_image=image_name $tag=default_tag:
