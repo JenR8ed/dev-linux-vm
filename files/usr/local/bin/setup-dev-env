@@ -1,0 +1,15 @@
+#!/bin/bash
+# Development environment initialization
+mkdir -p ~/projects/{web,mobile,backend,scripts}
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+
+# GitHub CLI setup reminder
+echo "Remember to run: gh auth login" > ~/SETUP_REMINDER.txt
+echo "Remember to setup X11: setup-x11" >> ~/SETUP_REMINDER.txt
+
+# Clone common development tools
+if [ ! -d ~/tools/dotfiles ]; then
+    mkdir -p ~/tools
+    # You can clone your dotfiles here
+fi

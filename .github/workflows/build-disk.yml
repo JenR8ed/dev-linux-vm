@@ -10,6 +10,7 @@ on:
         default: false
         type: boolean
       platform:
+        description: "Target platform"
         required: true
         type: choice
         options:
@@ -19,13 +20,13 @@ on:
     branches:
       - main
     paths:
-      - './disk_config/disk.toml'
-      - './disk_config/iso.toml'
-      - './.github/workflows/build-disk.yml'
+      - "./disk_config/disk.toml"
+      - "./disk_config/iso.toml"
+      - "./.github/workflows/build-disk.yml"
 
 env:
   IMAGE_NAME: ${{ github.event.repository.name }} # output of build.yml, keep in sync
-  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"  # do not edit
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}" # do not edit
   DEFAULT_TAG: "latest"
   BIB_IMAGE: "ghcr.io/lorbuschris/bootc-image-builder:20250608" # "quay.io/centos-bootc/bootc-image-builder:latest" - see https://github.com/osbuild/bootc-image-builder/pull/954
 
@@ -59,6 +60,10 @@ jobs:
           echo "DISK_TYPE=${DISK_TYPE}" >> ${GITHUB_ENV}
           echo "USER_UID=${USER_UID}" >> ${GITHUB_ENV}
           echo "USER_GID=${USER_GID}" >> ${GITHUB_ENV}
+          # Set step outputs for use in subsequent steps
+          echo "user_uid=${USER_UID}" >> $GITHUB_OUTPUT
+          echo "user_gid=${USER_GID}" >> $GITHUB_OUTPUT
+        id: prepare
 
       - name: Install dependencies
         if: inputs.platform == 'arm64'
@@ -84,7 +89,7 @@ jobs:
           builder-image: ${{ env.BIB_IMAGE }}
           config-file: ${{ matrix.disk-type == 'anaconda-iso' && './disk_config/iso.toml' || './disk_config/disk.toml' }}
           image: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.DEFAULT_TAG }}
-          chown: ${{ env.USER_UID }}:${{ env.USER_GID }}
+          chown: ${{ steps.prepare.outputs.user_uid }}:${{ steps.prepare.outputs.user_gid }}
           types: ${{ matrix.disk-type }}
           additional-args: --use-librepo=True
 
@@ -97,7 +102,7 @@ jobs:
           retention-days: 0
           compression-level: 0
           overwrite: true
-      
+
       - name: Upload to S3
         if: inputs.upload-to-s3 == true && github.event_name != 'pull_request'
         shell: bash

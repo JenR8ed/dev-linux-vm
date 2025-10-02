@@ -1,0 +1,12 @@
+[Unit]
+Description=Development Environment Setup
+After=network.target
+
+[Service]
+Type=oneshot
+User=developer
+ExecStart=/usr/local/bin/setup-dev-env
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

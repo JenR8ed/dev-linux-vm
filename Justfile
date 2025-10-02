@@ -44,6 +44,13 @@ clean:
     rm -f output.env
     rm -f output/
 
+# Simplified clean command
+[group('Utility')]
+clean-simple:
+    #!/usr/bin/bash
+    rm -rf ./output
+    podman system prune -f
+
 # Sudo Clean Repo
 [group('Utility')]
 [private]
@@ -97,8 +104,50 @@ build $target_image=image_name $tag=default_tag:
     podman build \
         "${BUILD_ARGS[@]}" \
         --pull=newer \
+        --layers \
         --tag "${target_image}:${tag}" \
         .
+
+# Memory-efficient build with monitoring and cleanup
+build-safe $target_image=image_name $tag=default_tag:
+    ./scripts/memory-efficient-build.sh Containerfile "{{target_image}}:{{tag}}"
+
+# Memory-efficient simple build
+build-simple-safe $target_image=image_name $tag=default_tag:
+    ./scripts/memory-efficient-build.sh Containerfile.simple "{{target_image}}:{{tag}}"
+
+# Simplified build command for container image
+[group('Simplified Build')]
+build-simple $target_image=image_name $tag=default_tag:
+    podman build --layers -t {{target_image}}:{{tag}} .
+
+# Simplified VM image build (qcow2)
+[group('Simplified Build')]
+build-vm-simple $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    mkdir -p ./output
+    podman run --rm -it --privileged \
+        --pull=newer \
+        --security-opt label=type:unconfined_t \
+        -v ./output:/output \
+        -v /var/lib/containers/storage:/var/lib/containers/storage \
+        {{bib_image}} \
+        --type qcow2 \
+        localhost/{{target_image}}:{{tag}}
+
+# Simplified ISO image build
+[group('Simplified Build')]
+build-iso-simple $target_image=image_name $tag=default_tag:
+    #!/usr/bin/env bash
+    mkdir -p ./output
+    podman run --rm -it --privileged \
+        --pull=newer \
+        --security-opt label=type:unconfined_t \
+        -v ./output:/output \
+        -v /var/lib/containers/storage:/var/lib/containers/storage \
+        {{bib_image}} \
+        --type iso \
+        localhost/{{target_image}}:{{tag}}
 
 # Command: _rootful_load_image
 # Description: This script checks if the current user is root or running under sudo. If not, it attempts to resolve the image tag using podman inspect.
@@ -120,6 +169,7 @@ build $target_image=image_name $tag=default_tag:
 _rootful_load_image $target_image=image_name $tag=default_tag:
     #!/usr/bin/bash
     set -eoux pipefail
+
 
     # Check if already running as root or under sudo
     if [[ -n "${SUDO_USER:-}" || "${UID}" -eq "0" ]]; then
