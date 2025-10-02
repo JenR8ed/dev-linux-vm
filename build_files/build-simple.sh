@@ -31,13 +31,14 @@ curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.
 dnf install -y gh
 
 # Install additional web development tools
-npm install -g \
-    @angular/cli \
-    @vue/cli \
-    create-react-app \
-    typescript \
-    eslint \
-    prettier
+# Skip npm for now due to permission issues in container build
+# npm install -g \
+#     @angular/cli \
+#     @vue/cli \
+#     create-react-app \
+#     typescript \
+#     eslint \
+#     prettier
 
 # Python development tools
 pip3 install \
