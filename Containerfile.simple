@@ -1,16 +1,13 @@
 # Base image - using Universal Blue base with development tools
 FROM ghcr.io/ublue-os/base-main:latest
 
-# Copy build files
+# Copy build files first for better layer caching
 COPY build_files/build-simple.sh /tmp/build-simple.sh
 COPY files/ /tmp/files/
 
-# Run build script
-RUN chmod +x /tmp/build-simple.sh && /tmp/build-simple.sh
-
-# Enable X11 forwarding by default
-RUN systemctl enable sshd
-
-# Final system validation
-RUN bootc container lint
+# Run build script, enable services, and validate in single layer
+RUN chmod +x /tmp/build-simple.sh && \
+    /tmp/build-simple.sh && \
+    systemctl enable sshd && \
+    bootc container lint
 

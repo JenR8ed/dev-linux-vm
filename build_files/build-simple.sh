@@ -2,10 +2,8 @@
 
 set -oue pipefail
 
-# Update system packages
-dnf update -y
-
-# Install essential development tools
+# Update system packages and install essentials in one transaction
+dnf update -y && \
 dnf install -y \
     git \
     curl \
@@ -26,8 +24,8 @@ dnf install -y \
     rsync
 
 # Install GitHub CLI
-dnf install -y 'dnf-command(config-manager)'
-curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo
+dnf install -y 'dnf-command(config-manager)' && \
+curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo && \
 dnf install -y gh
 
 # Install additional web development tools
@@ -41,6 +39,13 @@ dnf install -y gh
 #     prettier
 
 # Python development tools
+# Create /usr/local/lib directory for pip installations
+if [ -L /usr/local ]; then
+    # Create the target directory for the symlink
+    mkdir -p /var/usrlocal/lib/python3.13/site-packages
+else
+    mkdir -p /usr/local/lib/python3.13/site-packages
+fi
 pip3 install \
     flask \
     django \
@@ -108,10 +113,16 @@ export PATH="$HOME/.local/bin:$PATH"
 EOF
 
 # Create development directories
-mkdir -p /opt/dev-tools
+# Fix broken /opt symlink in Universal Blue base image
+# /opt -> var/opt but /var/opt doesn't exist
+if [ -L /opt ]; then
+    mkdir -p /var/opt/dev-tools
+else
+    mkdir -p /opt/dev-tools
+fi
 mkdir -p /home/developer/{projects,scripts,tools}
 
-# Clean up
-dnf clean all
-rm -rf /tmp/*
+# Clean up package cache and temporary files
+dnf clean all && \
+rm -rf /tmp/* /var/cache/dnf/* /var/tmp/*
 

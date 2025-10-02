@@ -2,10 +2,8 @@
 
 set -oue pipefail
 
-# Update system packages
-dnf update -y
-
-# Install X11 and development essentials
+# Update system packages and install essentials in one transaction
+dnf update -y && \
 dnf install -y --skip-unavailable \
     xorg-x11-xauth \
     git \
@@ -29,17 +27,17 @@ dnf install -y --skip-unavailable \
     rsync
 
 # Install GitHub CLI
-dnf install -y --skip-unavailable 'dnf-command(config-manager)'
-curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo
+dnf install -y --skip-unavailable 'dnf-command(config-manager)' && \
+curl -fsSL https://cli.github.com/packages/rpm/gh-cli.repo | tee /etc/yum.repos.d/gh-cli.repo && \
 dnf install -y --skip-unavailable gh
 
 # VSCodium installation removed - package not available in Fedora repositories
 
 # Install web development tools via npm
-npm config set prefix /usr/local
-npm config set cache /tmp/.npm
-npm config set init-module /tmp/.npm-init
-npm config set userconfig /tmp/.npmrc
+npm config set prefix /usr/local && \
+npm config set cache /tmp/.npm && \
+npm config set init-module /tmp/.npm-init && \
+npm config set userconfig /tmp/.npmrc && \
 npm install -g \
     @angular/cli \
     @vue/cli \
@@ -185,6 +183,6 @@ chown -R developer:developer /home/developer/
 
 # JetBrains Toolbox installation removed for stability
 
-# Clean up
-dnf clean all
-rm -rf /tmp/*
+# Clean up package cache and temporary files
+dnf clean all && \
+rm -rf /tmp/* /var/cache/dnf/* /var/tmp/*

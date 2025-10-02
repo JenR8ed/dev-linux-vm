@@ -104,13 +104,14 @@ build $target_image=image_name $tag=default_tag:
     podman build \
         "${BUILD_ARGS[@]}" \
         --pull=newer \
+        --layers \
         --tag "${target_image}:${tag}" \
         .
 
 # Simplified build command for container image
 [group('Simplified Build')]
 build-simple $target_image=image_name $tag=default_tag:
-    podman build -t {{target_image}}:{{tag}} .
+    podman build --layers -t {{target_image}}:{{tag}} .
 
 # Simplified VM image build (qcow2)
 [group('Simplified Build')]
